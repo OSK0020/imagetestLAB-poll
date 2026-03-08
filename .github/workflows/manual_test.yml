@@ -6,6 +6,7 @@ on:
     # רץ כל יום שני  08:00 בבוקר (לפי שעון UTC)
     - cron: '0 8 * * 1'
 
+
 jobs:
   test-models:
     runs-on: ubuntu-latest

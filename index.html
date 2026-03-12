@@ -77,14 +77,32 @@
             
             <!-- Profile Section -->
             <div class="bg-gray-800/50 p-4 rounded-xl border border-gray-700/50">
-                <div class="flex items-center gap-4 mb-3">
-                    <div class="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-lg font-bold">
+                <div class="flex items-center gap-4 mb-4">
+                    <img id="user-avatar" src="" alt="Profile" class="w-12 h-12 rounded-full hidden border-2 border-blue-500 shadow-lg object-cover">
+                    <div id="user-avatar-placeholder" class="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-lg font-bold">
                         U
                     </div>
                     <div>
-                        <div class="font-medium">User</div>
+                        <div class="font-medium" id="user-name" data-i18n="guest">אורח</div>
                         <div class="text-xs text-gray-400" id="tier-display">Tier: Free</div>
                     </div>
+                </div>
+                
+                <!-- Auth Buttons -->
+                <div class="flex gap-2">
+                    <button id="login-btn" class="w-full bg-white hover:bg-gray-100 text-gray-900 text-sm py-2 rounded-lg transition-colors flex items-center justify-center gap-2 font-medium">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                        </svg>
+                        <span data-i18n="loginWithGoogle">התחבר עם Google</span>
+                    </button>
+                    <button id="logout-btn" class="hidden w-full bg-red-500/10 hover:bg-red-500/20 text-red-400 text-sm py-2 rounded-lg transition-colors flex items-center justify-center gap-2 font-medium">
+                        <i data-lucide="log-out" class="w-4 h-4"></i>
+                        <span data-i18n="logout">התנתק</span>
+                    </button>
                 </div>
             </div>
 
@@ -94,7 +112,7 @@
                 
                 <div class="bg-gray-800/50 p-4 rounded-xl border border-gray-700/50 flex justify-between items-center">
                     <div class="flex items-center gap-2 text-sm">
-                        <i data-lucide="coins" class="w-4 h-4 text-yellow-500"></i>
+                        <i data-lucide="cloud" class="w-4 h-4 text-blue-400"></i>
                         <span data-i18n="balanceText">תמונות שנוצרו:</span>
                     </div>
                     <span id="usage-count" class="font-mono font-bold text-blue-400">0</span>
@@ -114,7 +132,10 @@
             <!-- History Section -->
             <div class="space-y-3">
                 <div class="flex justify-between items-center">
-                    <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider" data-i18n="historyTitle">היסטוריה</h3>
+                    <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-2">
+                        <i data-lucide="history" class="w-4 h-4"></i>
+                        <span data-i18n="historyTitle">היסטוריה בענן</span>
+                    </h3>
                     <button id="clear-history-btn" class="text-xs text-red-400 hover:text-red-300 transition-colors" data-i18n="clearHistoryBtn">נקה</button>
                 </div>
                 <div id="history-list" class="space-y-2">
@@ -170,7 +191,41 @@
         </div>
     </div>
 
-    <script>
+    <!-- הגדרת המערכת וה-Firebase כמודול -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- Firebase Configuration ---
+        // TODO: כדי שזה יעבוד ב-GitHub Pages שלך, החלף את הערכים כאן לנתונים מה-Firebase Console שלך!
+        let firebaseConfig;
+        const isCanvasEnv = typeof __firebase_config !== 'undefined';
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'pollinations-gallery';
+
+        if (isCanvasEnv) {
+            // רץ בתוך מערכת הבדיקות של Canvas
+            firebaseConfig = JSON.parse(__firebase_config);
+        } else {
+            // >>> הכנס את נתוני ה-Firebase שלך כאן לפריסה ב-GitHub Pages <<<
+            firebaseConfig = {
+                apiKey: "YOUR_API_KEY",
+                authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+                projectId: "YOUR_PROJECT_ID",
+                storageBucket: "YOUR_PROJECT_ID.appspot.com",
+                messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+                appId: "YOUR_APP_ID"
+            };
+        }
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const googleProvider = new GoogleAuthProvider();
+
+        let currentUser = null;
+        let unsubscribeSnapshot = null;
+
         // --- 1. CONFIGURATION & MODELS ---
         const MODELS = [
             { id: 'flux', name: 'Flux Schnell' },
@@ -194,14 +249,17 @@
                 apiKeyLabel: "מפתח API (Pollinations)",
                 saveKeyBtn: "שמור מפתח",
                 apiKeyDesc: "המפתח נשמר מקומית בדפדפן שלך בלבד.",
-                historyTitle: "היסטוריה",
+                historyTitle: "היסטוריה בענן",
                 clearHistoryBtn: "נקה",
                 mainTitle: "מעבדת המודלים של AI",
                 mainSubtitle: "הזן תיאור למטה, וראה בזמן אמת כיצד מודלי הבינה המלאכותית המתקדמים בעולם מפרשים אותו.",
                 promptPlaceholder: "תאר את התמונה שתרצה ליצור... (לדוגמה: עיר עתידנית מניאון)",
                 poweredBy: "מופעל על ידי טכנולוגיית",
                 generatingIn: "מייצר ב-",
-                errorLoading: "שגיאה בטעינת"
+                errorLoading: "שגיאה בטעינת",
+                guest: "אורח",
+                loginWithGoogle: "התחבר עם Google",
+                logout: "התנתק"
             },
             en: {
                 logoTitle: "AI Lab",
@@ -211,14 +269,17 @@
                 apiKeyLabel: "API Key (Pollinations)",
                 saveKeyBtn: "Save Key",
                 apiKeyDesc: "Your key is stored locally in your browser only.",
-                historyTitle: "History",
+                historyTitle: "Cloud History",
                 clearHistoryBtn: "Clear",
                 mainTitle: "AI Models Laboratory",
                 mainSubtitle: "Enter a description below and see in real-time how the world's leading AI models interpret it.",
                 promptPlaceholder: "Describe the image you want... (e.g., A futuristic neon city)",
                 poweredBy: "Powered by",
                 generatingIn: "Generating in ",
-                errorLoading: "Error loading "
+                errorLoading: "Error loading ",
+                guest: "Guest",
+                loginWithGoogle: "Sign in with Google",
+                logout: "Logout"
             }
         };
 
@@ -238,6 +299,12 @@
         const sidebar = document.getElementById('sidebar');
         const sidebarOverlay = document.getElementById('sidebar-overlay');
         
+        const loginBtn = document.getElementById('login-btn');
+        const logoutBtn = document.getElementById('logout-btn');
+        const userAvatar = document.getElementById('user-avatar');
+        const userAvatarPlaceholder = document.getElementById('user-avatar-placeholder');
+        const userNameDisplay = document.getElementById('user-name');
+        
         const apiKeyInput = document.getElementById('api-key-input');
         const saveKeyBtn = document.getElementById('save-key-btn');
         const usageCountDisplay = document.getElementById('usage-count');
@@ -254,7 +321,6 @@
 
         // --- 5. INITIALIZATION ---
         function init() {
-            // Render Model Badges
             MODELS.forEach(m => {
                 const badge = document.createElement('span');
                 badge.className = "bg-gray-800/80 px-3 py-1.5 rounded-full border border-gray-700/50 backdrop-blur-sm";
@@ -266,22 +332,126 @@
             updateProfileUI();
             renderHistory();
             lucide.createIcons();
+            
+            // Authentication setup for Canvas Environment if needed
+            const initAuthCanvas = async () => {
+                try {
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } else if (isCanvasEnv) {
+                        await signInAnonymously(auth);
+                    }
+                } catch(e) { console.error(e); }
+            };
+            initAuthCanvas();
         }
+
+        // --- FIREBASE AUTH & FIRESTORE SYNC ---
+        onAuthStateChanged(auth, (user) => {
+            if (user && !user.isAnonymous) {
+                currentUser = user;
+                
+                // עדכון ממשק למשתמש מחובר
+                userNameDisplay.innerText = user.displayName || "משתמש רשום";
+                if (user.photoURL) {
+                    userAvatar.src = user.photoURL;
+                    userAvatar.classList.remove('hidden');
+                    userAvatarPlaceholder.classList.add('hidden');
+                }
+                loginBtn.classList.add('hidden');
+                logoutBtn.classList.remove('hidden');
+
+                // האזנה לשינויים במסד הנתונים בענן (Firestore)
+                if (unsubscribeSnapshot) unsubscribeSnapshot();
+                
+                // היררכיית הפרויקט בענן (מודל מאובטח)
+                const docRef = doc(db, 'artifacts', appId, 'users', user.uid, 'data', 'main');
+                
+                unsubscribeSnapshot = onSnapshot(docRef, (docSnap) => {
+                    if (docSnap.exists()) {
+                        const data = docSnap.data();
+                        state.usageCount = data.usageCount || 0;
+                        state.history = data.history || [];
+                        
+                        // גיבוי לוקאלי
+                        localStorage.setItem('pollinationsUsageCount', state.usageCount);
+                        localStorage.setItem('promptHistory', JSON.stringify(state.history));
+                        
+                        renderHistory();
+                        updateProfileUI();
+                    } else {
+                        // משתמש חדש לגמרי – שומרים את הנתונים הלוקאליים שלו לענן
+                        syncToCloud();
+                    }
+                }, (error) => console.error("Firestore sync error:", error));
+                
+            } else {
+                currentUser = null;
+                if (unsubscribeSnapshot) {
+                    unsubscribeSnapshot();
+                    unsubscribeSnapshot = null;
+                }
+                
+                // איפוס ממשק למצב אורח
+                userNameDisplay.innerText = translations[state.lang].guest;
+                userAvatar.classList.add('hidden');
+                userAvatarPlaceholder.classList.remove('hidden');
+                loginBtn.classList.remove('hidden');
+                logoutBtn.classList.add('hidden');
+                
+                // משיכה מ-LocalStorage
+                state.usageCount = parseInt(localStorage.getItem('pollinationsUsageCount') || '0');
+                state.history = JSON.parse(localStorage.getItem('promptHistory') || '[]');
+                renderHistory();
+                updateProfileUI();
+            }
+        });
+
+        async function syncToCloud() {
+            if (!currentUser || currentUser.isAnonymous) return;
+            try {
+                // שומרים את ההיסטוריה והכמות במסמך בודד בענן
+                const docRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'data', 'main');
+                await setDoc(docRef, {
+                    usageCount: state.usageCount,
+                    history: state.history,
+                    lastUpdated: new Date().toISOString()
+                }, { merge: true });
+            } catch (error) {
+                console.error("Error saving to cloud:", error);
+            }
+        }
+
+        loginBtn.addEventListener('click', async () => {
+            try {
+                await signInWithPopup(auth, googleProvider);
+            } catch (error) {
+                console.error("Login failed:", error);
+            }
+        });
+
+        logoutBtn.addEventListener('click', async () => {
+            try {
+                await signOut(auth);
+            } catch (error) {
+                console.error("Logout failed:", error);
+            }
+        });
 
         // --- 6. LANGUAGE LOGIC ---
         langBtn.addEventListener('click', () => {
             state.lang = state.lang === 'he' ? 'en' : 'he';
             localStorage.setItem('appLang', state.lang);
             applyLanguage();
+            // עדכון המילה "אורח" במידה ולא מחובר
+            if (!currentUser) userNameDisplay.innerText = translations[state.lang].guest;
         });
 
         function applyLanguage() {
-            // Set direction and text
             htmlRoot.dir = state.lang === 'he' ? 'rtl' : 'ltr';
             htmlRoot.lang = state.lang;
             langBtn.innerText = state.lang === 'he' ? 'EN' : 'עב';
             
-            // Adjust Sidebar position based on direction
             if (state.lang === 'he') {
                 sidebar.classList.remove('left-0', 'border-r');
                 sidebar.classList.add('right-0', 'border-l');
@@ -290,15 +460,12 @@
                 sidebar.classList.add('left-0', 'border-r');
             }
             
-            // Update static texts
             document.querySelectorAll('[data-i18n]').forEach(el => {
                 const key = el.getAttribute('data-i18n');
                 if (translations[state.lang][key]) {
                     el.innerText = translations[state.lang][key];
                 }
             });
-            
-            // Update placeholders
             input.placeholder = translations[state.lang].promptPlaceholder;
         }
 
@@ -335,9 +502,8 @@
 
         saveKeyBtn.addEventListener('click', () => {
             state.apiKey = apiKeyInput.value.trim();
-            localStorage.setItem('pollinationsApiKey', state.apiKey);
+            localStorage.setItem('pollinationsApiKey', state.apiKey); // שומר תמיד לוקאלית מטעמי אבטחה
             
-            // Visual feedback
             const originalText = saveKeyBtn.innerText;
             saveKeyBtn.innerText = state.lang === 'he' ? "נשמר בהצלחה!" : "Saved!";
             saveKeyBtn.classList.replace('bg-blue-600', 'bg-green-600');
@@ -353,16 +519,15 @@
 
         // --- 9. HISTORY LOGIC ---
         function saveToHistory(promptStr) {
-            // Remove if exists to put it at the top
             state.history = state.history.filter(h => h.prompt !== promptStr);
             state.history.unshift({
                 prompt: promptStr,
                 date: new Date().toISOString()
             });
-            // Keep only last 20
             if (state.history.length > 20) state.history.pop();
             
             localStorage.setItem('promptHistory', JSON.stringify(state.history));
+            syncToCloud(); // סנכרון לענן אם המשתמש מחובר!
             renderHistory();
         }
 
@@ -396,6 +561,7 @@
         clearHistoryBtn.addEventListener('click', () => {
             state.history = [];
             localStorage.setItem('promptHistory', '[]');
+            syncToCloud();
             renderHistory();
         });
 
@@ -412,7 +578,6 @@
         async function fetchImageWithKey(url, apiKey) {
             if (!apiKey) return url;
             try {
-                // If the user has a key, we fetch the blob directly to pass the Authorization header securely
                 const res = await fetch(url, {
                     headers: { "Authorization": `Bearer ${apiKey}` }
                 });
@@ -421,12 +586,11 @@
                 return URL.createObjectURL(blob);
             } catch (error) {
                 console.error("Fetch failed, falling back to basic URL:", error);
-                return url; // fallback to free tier if error
+                return url;
             }
         }
 
         async function generateImages(prompt) {
-            // UI State change
             welcomeScreen.classList.add('hidden');
             gallery.classList.remove('hidden');
             gallery.innerHTML = ''; 
@@ -440,7 +604,6 @@
             const encodedPrompt = encodeURIComponent(prompt);
 
             for (const model of MODELS) {
-                // Card UI
                 const card = document.createElement('div');
                 card.className = 'bg-gray-800 rounded-2xl overflow-hidden border border-gray-700 shadow-2xl relative group aspect-square flex flex-col items-center justify-center';
                 
@@ -456,10 +619,8 @@
                 img.className = 'w-full h-full object-cover opacity-0 transition-opacity duration-700 z-20 relative';
                 img.alt = `Generated by ${model.name}`;
                 
-                // Base Pollinations URL
                 const baseUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?model=${model.id}&width=1024&height=1024&nologo=true&seed=${seed}`;
 
-                // Fetch logic (handles API Key if present)
                 fetchImageWithKey(baseUrl, state.apiKey).then(finalUrl => {
                     img.src = finalUrl;
                 });
@@ -484,7 +645,6 @@
                 badge.className = 'absolute top-3 right-3 bg-black/70 text-white px-3 py-1.5 rounded-xl text-xs font-semibold tracking-wide z-30 backdrop-blur-md border border-gray-600/50 shadow-lg';
                 badge.innerText = model.name;
 
-                // Download button (appears on hover)
                 const downloadBtn = document.createElement('button');
                 downloadBtn.className = 'absolute bottom-3 right-3 bg-blue-600/90 hover:bg-blue-500 text-white p-2 rounded-xl z-30 opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-md shadow-lg';
                 downloadBtn.innerHTML = '<i data-lucide="download" class="w-4 h-4"></i>';
@@ -520,11 +680,13 @@
             state.usageCount++;
             localStorage.setItem('pollinationsUsageCount', state.usageCount.toString());
             usageCountDisplay.innerText = state.usageCount;
+            // כל פעם שנוצרת תמונה חדשה (מונה עולה), נעדכן בענן
+            if (state.usageCount % MODELS.length === 0) { // מעדכן פעם אחת בסוף סבב יצירה כדי לחסוך קריאות לשרת
+                syncToCloud(); 
+            }
         }
 
-        // Run setup
         init();
-
     </script>
 </body>
 </html>

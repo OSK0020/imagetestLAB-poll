@@ -9,14 +9,17 @@ if not API_KEY:
     print("❌ Error: POLLINATIONS_API_KEY environment variable is missing!")
     exit(1)
 
-# --- רשימת המודלים לבדיקה ---
+# --- רשימת המודלים לבדיקה (מעודכנת לפי ה-HTML החדש) ---
 MODELS = {
     "flux": "Flux Schnell",
+    "flux-2-dev": "FLUX.2 Dev",
+    "dirtberry": "Dirtberry",
     "zimage": "Z-Image Turbo",
-    "imagen-4": "Google Imagen 4 (Alpha)",
+    "imagen-4": "Google Imagen 4",
+    "grok-imagine": "Grok Imagine",
     "klein": "FLUX.2 Klein 4B",
-    "klein-large": "FLUX.2 Klein 9B",
-    "gptimage": "GPT Image 1 Mini"
+    "gptimage": "GPT Image 1 Mini",
+    "klein-large": "FLUX.2 Klein 9B"
 }
 
 PROMPT = "A futuristic cyberpunk street food vendor in Tokyo, neon lights, rain, highly detailed, 8k resolution"

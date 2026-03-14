@@ -694,11 +694,17 @@
             const prompt = input.value.trim();
             if (!prompt) return;
 
+            console.log("==================================================");
+            console.log("🚀 STARTING NEW GENERATION TASK");
+            console.log(`📝 Prompt: "${prompt}"`);
+            console.log(`🔑 API Key Status: ${state.apiKey ? 'PRESENT (Length: ' + state.apiKey.length + ')' : 'MISSING/EMPTY'}`);
+            console.log("==================================================");
+
             saveToHistory(prompt);
             generateImages(prompt);
         });
 
-        // פונקציית יצירת התמונות - טעינה טורית עם המתנה של 5 שניות וחשיפה מרוכזת בסוף
+        // פונקציית יצירת התמונות - עם לוגים מפורטים לדיבאג!
         async function generateImages(prompt) {
             welcomeScreen.classList.add('hidden');
             gallery.classList.remove('hidden');
@@ -710,6 +716,9 @@
 
             const seed = Math.floor(Math.random() * 1000000);
             const encodedPrompt = encodeURIComponent(prompt);
+
+            console.log(`🎲 Seed generated: ${seed}`);
+            console.log(`🔗 Encoded Prompt: ${encodedPrompt}`);
 
             // 1. בניית "שלד" הריבועים והצגת "ממתין בתור" לכולם
             const imageCards = [];
@@ -756,12 +765,24 @@
             }
             lucide.createIcons();
 
+            console.log("🏗️ UI Skeletons created. Starting sequential loading...");
+
             // 2. תהליך היצירה וההמתנה - מודל אחרי מודל
             for (let i = 0; i < imageCards.length; i++) {
                 const item = imageCards[i];
+                console.log(`\n▶️ [${i+1}/${MODELS.length}] Starting processing for model: ${item.model.name} (${item.model.id})`);
                 
-                // הקישור השלם, כשהמפתח מצורף ממש בסוף הכתובת:
-                const baseUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?model=${item.model.id}&width=1024&height=1024&nologo=true&seed=${seed}&key=${state.apiKey}`;
+                // 1. קודם כל בונים את הקישור הבסיסי והנקי
+                let baseUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?model=${item.model.id}&width=1024&height=1024&nologo=true&seed=${seed}`;
+                
+                // 2. בדיקה בטוחה: רק אם יש מפתח סודי תקין, נוסיף אותו לקישור!
+                // השתמשנו ב-encodeURIComponent כדי להבטיח שאין תווים ששוברים את הקישור
+                if (state.apiKey && state.apiKey.trim() !== "") {
+                    const safeKey = encodeURIComponent(state.apiKey.trim());
+                    baseUrl += `&key=${safeKey}`;
+                }
+                
+                console.log(`🌐 Exact URL requested: ${baseUrl}`);
                 
                 const statusText = document.getElementById(`status-${item.model.id}`);
                 const spinner = document.getElementById(`spinner-${item.model.id}`);
@@ -771,7 +792,10 @@
 
                 // ממתינים עד שהתמונה יורדת לדפדפן (אבל לא מציגים אותה עדיין!)
                 await new Promise((resolve) => {
+                    console.log(`⏳ Waiting for image download to complete for ${item.model.id}...`);
+                    
                     item.img.onload = () => {
+                        console.log(`✅ SUCCESS: Image loaded completely for ${item.model.id}!`);
                         if(statusText) {
                             statusText.innerText = state.lang === 'he' ? 'מוכן! ממתין לחשיפה...' : 'Ready! Waiting...';
                             statusText.classList.replace('text-blue-600', 'text-green-600');
@@ -784,6 +808,8 @@
                     };
 
                     item.img.onerror = () => {
+                        console.error(`❌ ERROR: Failed to load image for ${item.model.id}.`);
+                        console.error(`👉 TIP: Click the URL above in this console to see the exact error message from Pollinations (e.g. "Queue full" or "Internal Error").`);
                         if(statusText) {
                             statusText.innerText = state.lang === 'he' ? 'שגיאה' : 'Error';
                             statusText.classList.replace('text-blue-600', 'text-red-500');
@@ -794,15 +820,18 @@
                         resolve();
                     };
 
-                    // מפעיל את הבקשה
+                    // מפעיל את הבקשה האמיתית לדפדפן
                     item.img.src = baseUrl;
                 });
 
                 // ממתינים 5 שניות בין כל מודל למודל (אלא אם כן זה המודל האחרון)
                 if (i < imageCards.length - 1) {
+                    console.log(`⏱️ Waiting 5 seconds before hitting the next model to avoid Rate Limits...`);
                     await new Promise(resolve => setTimeout(resolve, 5000));
                 }
             }
+
+            console.log("\n🎉 ALL MODELS PROCESSED! Revealing images...");
 
             // 3. חשיפת כל התמונות ביחד!
             for (const item of imageCards) {
@@ -831,6 +860,7 @@
             lucide.createIcons();
             input.focus();
             window.scrollTo({ top: 0, behavior: 'smooth' });
+            console.log("✅ FINISHED SEQUENCE.");
         }
 
         function updateUsageCount() {

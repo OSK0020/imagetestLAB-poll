@@ -1,6 +1,7 @@
 import requests
 import os
 import time
+import urllib.parse
 
 # --- משיכת המפתח הסודי ממשתני הסביבה (במקום לכתוב אותו כאן) ---
 API_KEY = os.getenv("POLLINATIONS_API_KEY")
@@ -29,7 +30,7 @@ print("🚀 Starting Automated Model Test...")
 for code, name in MODELS.items():
     print(f"\n📸 Testing {name} ({code})...")
     
-    url = f"https://image.pollinations.ai/prompt/{requests.utils.quote(PROMPT)}"
+    url = f"https://image.pollinations.ai/prompt/{urllib.parse.quote(PROMPT)}"
     params = {
         "model": code,
         "width": 1024, "height": 1024,

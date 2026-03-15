@@ -1,0 +1,19 @@
+# Python stuff
+__pycache__/
+*.pyc
+
+# Environment variables (NEVER UPLOAD SECRET KEYS!)
+.env
+.env.local
+
+# Generated test images from Python script
+image_*.jpg
+output_*.mp4
+
+# Node/Lovable stuff (if generated later)
+node_modules/
+dist/
+build/
+.DS_Store
+
+עם 2 הקבצים האלו (README ו-.gitignore), יחד עם אפיון ה-AI שהכנו (`ai_project_spec.md`), הקוד של הפייתון וקוד ה-HTML... יש לך **מאגר (Repository) מקצועי לחלוטין** שמוכן ל-Lovable, לראיונות עבודה, או לשימוש אישי מול כל בוט AI!

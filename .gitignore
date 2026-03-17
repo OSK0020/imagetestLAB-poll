@@ -1,19 +1,41 @@
-# Python stuff
-__pycache__/
-*.pyc
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# Environment variables (NEVER UPLOAD SECRET KEYS!)
-.env
-.env.local
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
 
-# Generated test images from Python script
-image_*.jpg
-output_*.mp4
+# testing
+/coverage
 
-# Node/Lovable stuff (if generated later)
-node_modules/
-dist/
-build/
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
 .DS_Store
+*.pem
 
-עם 2 הקבצים האלו (README ו-.gitignore), יחד עם אפיון ה-AI שהכנו (`ai_project_spec.md`), הקוד של הפייתון וקוד ה-HTML... יש לך **מאגר (Repository) מקצועי לחלוטין** שמוכן ל-Lovable, לראיונות עבודה, או לשימוש אישי מול כל בוט AI!
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+.env*
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts

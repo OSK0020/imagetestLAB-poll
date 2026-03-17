@@ -41,36 +41,36 @@ export default function Sidebar({ isOpen, onClose, apiKey, keyAnalysis, usageCou
               onClick={onClose}
               className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100]"
             />
-            <motion.aside
+              <motion.aside
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed top-0 right-0 bottom-0 w-80 max-w-[90vw] bg-white dark:bg-[#0D0D0D] border-l border-white/10 z-[101] shadow-2xl flex flex-col"
+              className="fixed top-0 right-0 bottom-0 w-80 max-w-[90vw] bg-white dark:bg-[#0D0D0D] border-l border-slate-200 dark:border-white/10 z-[101] shadow-2xl flex flex-col text-slate-900 dark:text-white"
             >
               {/* Header */}
-              <div className="p-6 border-b border-white/5 flex items-center justify-between">
-                <h2 className="text-xl font-bold">Account</h2>
-                <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-xl transition-colors">
-                  <X className="w-5 h-5" />
+              <div className="p-6 border-b border-slate-100 dark:border-white/5 flex items-center justify-between">
+                <h2 className="text-xl font-bold">Profile & Labs</h2>
+                <button onClick={onClose} className="p-2 hover:bg-slate-100 dark:hover:bg-white/10 rounded-xl transition-colors">
+                  <X className="w-5 h-5 text-slate-400" />
                 </button>
               </div>
 
               {/* Profile */}
               <div className="flex-1 overflow-y-auto p-6 space-y-8">
-                <div className="bg-gradient-to-br from-purple-600/10 to-blue-600/10 border border-white/5 rounded-3xl p-6 relative overflow-hidden">
+                <div className="bg-gradient-to-br from-purple-600/10 to-blue-600/10 dark:from-purple-600/10 dark:to-blue-600/10 border border-slate-200 dark:border-white/5 rounded-3xl p-6 relative overflow-hidden">
                   <div className="relative z-10 flex items-center gap-4 mb-4">
                     {user ? (
-                      <img src={user.photoURL || ''} alt="" className="w-12 h-12 rounded-full border-2 border-purple-500" />
+                      <img src={user.photoURL || ''} alt="" className="w-12 h-12 rounded-full border-2 border-purple-500 shadow-xl" />
                     ) : (
-                      <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center">
+                      <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
                         <UserIcon className="w-6 h-6 text-slate-400" />
                       </div>
                     )}
                     <div>
-                      <h3 className="font-bold text-lg">{user?.displayName || 'Guest User'}</h3>
-                      <span className="text-xs text-slate-400 font-medium px-2 py-0.5 bg-white/5 rounded-full border border-white/5">
-                        Tier: {keyAnalysis?.isPremium ? 'Premium Pro' : 'Standard'}
+                      <h3 className="font-bold text-lg leading-tight">{user?.displayName || 'Guest Builder'}</h3>
+                      <span className="text-[10px] text-purple-600 dark:text-purple-400 font-black uppercase tracking-widest px-2 py-1 bg-purple-500/10 rounded-full border border-purple-500/10">
+                        {keyAnalysis?.isPremium ? 'PRO MEMBER' : 'STANDARD'}
                       </span>
                     </div>
                   </div>
@@ -78,7 +78,7 @@ export default function Sidebar({ isOpen, onClose, apiKey, keyAnalysis, usageCou
                   {!user && (
                     <button 
                       onClick={signIn}
-                      className="w-full py-3 bg-white dark:bg-white/10 hover:bg-white/20 text-slate-900 dark:text-white rounded-2xl font-bold transition-all text-sm mb-2"
+                      className="w-full py-3 bg-slate-900 dark:bg-white/10 hover:opacity-90 text-white rounded-2xl font-bold transition-all text-sm mb-2"
                     >
                       Sign in with Google
                     </button>
@@ -135,7 +135,7 @@ export default function Sidebar({ isOpen, onClose, apiKey, keyAnalysis, usageCou
                            onViewArchive();
                            onClose();
                          }}
-                         className="w-full py-4 bg-purple-600/10 hover:bg-purple-600/20 text-purple-500 rounded-2xl font-bold transition-all text-sm border border-purple-500/10 flex items-center justify-center gap-2"
+                         className="w-full py-4 bg-purple-600/5 dark:bg-purple-600/10 hover:bg-purple-600/10 dark:hover:bg-purple-600/20 text-purple-600 dark:text-purple-500 rounded-2xl font-bold transition-all text-sm border border-purple-500/10 flex items-center justify-center gap-2 shadow-sm shadow-purple-500/10"
                        >
                          <Maximize2 className="w-4 h-4" />
                          Open Archive View
@@ -172,17 +172,17 @@ export default function Sidebar({ isOpen, onClose, apiKey, keyAnalysis, usageCou
               </div>
 
               {/* Footer */}
-              <div className="p-6 border-t border-white/5">
+              <div className="p-6 border-t border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-transparent">
                 {user && (
                   <button 
                     onClick={logout}
-                    className="w-full flex items-center justify-center gap-2 py-3 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-2xl font-bold transition-all text-sm mb-4"
+                    className="w-full flex items-center justify-center gap-2 py-3 bg-red-500/5 hover:bg-red-500/10 text-red-500 rounded-2xl font-bold transition-all text-sm mb-4 border border-red-500/10"
                   >
                     <LogOut className="w-4 h-4" />
                     Sign Out Account
                   </button>
                 )}
-                <div className="text-center text-[10px] text-slate-500 uppercase tracking-widest font-bold">
+                <div className="text-center text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-widest font-black">
                   v1.2.0-Alpha Premium
                 </div>
               </div>

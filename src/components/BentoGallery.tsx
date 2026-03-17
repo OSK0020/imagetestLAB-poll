@@ -35,7 +35,7 @@ export default function BentoGallery({ images, onOpenImage }: BentoGalleryProps)
                 ease: [0.23, 1, 0.32, 1]
               }}
               className={cn(
-                "group relative overflow-hidden rounded-[2rem] border border-white/5 bg-white/5 backdrop-blur-sm cursor-pointer",
+                "group relative overflow-hidden rounded-[2rem] border border-slate-200 dark:border-white/5 bg-slate-100 dark:bg-white/5 backdrop-blur-sm cursor-pointer",
                 index % 5 === 0 ? "md:col-span-2 md:row-span-2" : "",
                 index % 7 === 0 ? "md:row-span-2" : ""
               )}
@@ -80,7 +80,7 @@ export default function BentoGallery({ images, onOpenImage }: BentoGalleryProps)
         </AnimatePresence>
 
         {images.length === 0 && (
-          <div className="col-span-full h-96 flex flex-col items-center justify-center text-gray-400 border-2 border-dashed border-white/10 rounded-[3rem]">
+          <div className="col-span-full h-96 flex flex-col items-center justify-center text-slate-400 dark:text-gray-400 border-2 border-dashed border-slate-200 dark:border-white/10 rounded-[3rem]">
             <Search className="w-12 h-12 mb-4 opacity-20" />
             <p className="text-xl font-medium opacity-50">Enter a prompt to see the magic happen.</p>
           </div>

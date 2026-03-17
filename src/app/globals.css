@@ -1,17 +1,24 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @layer base {
   :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 15, 7, 26;
-    --background-end-rgb: 26, 11, 46;
+    --background: #f8fafc;
+    --foreground: #0f172a;
+  }
+
+  .dark {
+    --background: #0F071A;
+    --foreground: #ffffff;
   }
 
   body {
-    color: rgb(var(--foreground-rgb));
-    background: #0F071A;
+    color: var(--foreground);
+    background: var(--background);
     font-family: 'Outfit', sans-serif;
     overflow-x: hidden;
+    transition: background-color 0.5s ease, color 0.5s ease;
   }
 
   /* Reset inputs and buttons which were showing up white in some browser views */

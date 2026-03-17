@@ -20,9 +20,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark scroll-smooth">
+    <html lang="en" className="scroll-smooth">
       <body
-        className={`${outfit.variable} font-sans antialiased bg-white dark:bg-[#0A0A0A] text-slate-900 dark:text-white selection:bg-purple-500/30 transition-colors duration-500`}
+        className={`${outfit.variable} font-sans antialiased selection:bg-purple-500/30`}
       >
         <ThemeProvider>
           <AuthProvider>

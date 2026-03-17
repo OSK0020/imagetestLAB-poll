@@ -47,17 +47,17 @@ export default function Home() {
     }
   }, [user, apiKey, fetchHistory]);
 
-  const handleConnect = async (key: string) => {
+  const handleConnect = async (key: string): Promise<boolean> => {
     setIsVerifying(true);
     const isValid = await verifyKey(key);
     
     if (isValid) {
       setApiKey(key);
       localStorage.setItem('pollinations_api_key', key);
-    } else {
-      alert("Invalid API Key. Please try again.");
     }
+    
     setIsVerifying(false);
+    return !!isValid;
   };
 
   const handleLogout = () => {

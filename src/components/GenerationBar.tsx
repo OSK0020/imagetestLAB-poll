@@ -34,13 +34,13 @@ export default function GenerationBar({ onGenerate, isGenerating }: GenerationBa
         initial={{ y: 50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
-        className="relative flex items-center gap-3 p-3 bg-[#1A1A1A]/80 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)]"
+        className="relative flex items-center gap-3 p-3 bg-white/90 dark:bg-[#1A1A1A]/80 backdrop-blur-3xl border border-slate-200 dark:border-white/10 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.5)]"
       >
         {/* Model Selector */}
         <div className="relative">
           <button
             onClick={() => setShowModels(!showModels)}
-            className="flex items-center gap-3 px-6 py-4 bg-white/5 hover:bg-white/10 rounded-full text-white text-[13px] font-bold transition-all border border-white/10 min-h-[48px]"
+            className="flex items-center gap-3 px-6 py-4 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 rounded-full text-slate-900 dark:text-white text-[13px] font-bold transition-all border border-slate-200 dark:border-white/10 min-h-[48px]"
           >
             {selectedModel.icon}
             <span className="hidden md:inline">{selectedModel.name}</span>
@@ -54,7 +54,7 @@ export default function GenerationBar({ onGenerate, isGenerating }: GenerationBa
                 initial={{ opacity: 0, y: -20, scale: 0.9 }}
                 animate={{ opacity: 1, y: -10, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.9, y: -20 }}
-                className="absolute bottom-full left-0 mb-4 bg-[#1A1A1A] border border-white/10 p-2 rounded-3xl shadow-2xl min-w-[240px] max-h-[400px] overflow-y-auto custom-scrollbar"
+                className="absolute bottom-full left-0 mb-4 bg-white dark:bg-[#1A1A1A] border border-slate-200 dark:border-white/10 p-2 rounded-3xl shadow-2xl min-w-[240px] max-h-[400px] overflow-y-auto custom-scrollbar"
               >
                 {MODELS.map((model) => (
                   <button
@@ -64,8 +64,8 @@ export default function GenerationBar({ onGenerate, isGenerating }: GenerationBa
                       setShowModels(false);
                     }}
                     className={cn(
-                      "flex items-center gap-3 w-full px-5 py-4 rounded-2xl text-[13px] font-bold transition-all text-white min-h-[48px]",
-                      selectedModel.id === model.id ? "bg-purple-600 shadow-lg shadow-purple-500/20" : "hover:bg-white/5"
+                      "flex items-center gap-3 w-full px-5 py-4 rounded-2xl text-[13px] font-bold transition-all text-slate-900 dark:text-white",
+                      selectedModel.id === model.id ? "bg-purple-600 text-white shadow-lg shadow-purple-500/20" : "hover:bg-slate-100 dark:hover:bg-white/5"
                     )}
                   >
                     {model.icon}
@@ -85,7 +85,7 @@ export default function GenerationBar({ onGenerate, isGenerating }: GenerationBa
             onChange={(e) => setPrompt(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && !isGenerating && onGenerate(prompt, selectedModel.id)}
             placeholder="Describe your vision..."
-            className="w-full bg-transparent border-none outline-none text-white px-4 text-xl placeholder:text-gray-500 font-medium tracking-tight"
+            className="w-full bg-transparent border-none outline-none text-slate-900 dark:text-white px-4 text-xl placeholder:text-slate-400 dark:placeholder:text-gray-500 font-medium tracking-tight"
           />
         </div>
 

@@ -1,8 +1,7 @@
 'use client';
 
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ExternalLink, Image as ImageIcon, Search, Download } from 'lucide-react';
+import { ExternalLink, Image as ImageIcon, Download } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ImageItem } from '@/hooks/usePollinations';
 
@@ -31,91 +30,54 @@ export default function BentoGallery({ images, onOpenImage, isUniform = false }:
   };
 
   return (
-    <div className={cn("max-w-7xl mx-auto px-6 py-12", isUniform && "max-w-full")}>
+    <div className={cn("max-w-6xl mx-auto px-4 py-8", isUniform && "max-w-full")}>
       <div className={cn(
-        "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 auto-rows-[300px]",
-        isUniform && "lg:grid-cols-3 xl:grid-cols-3" // Adjust for All Models view
+        "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4",
+        isUniform && "lg:grid-cols-3"
       )}>
-        <AnimatePresence mode="popLayout">
-          {images.map((img, index) => (
-            <motion.div
-              key={img.id}
-              layout
-              initial={{ opacity: 0, y: 30, scale: 0.9 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              transition={{
-                duration: 0.6,
-                delay: index * 0.05,
-                ease: [0.23, 1, 0.32, 1]
-              }}
-              className={cn(
-                "group relative overflow-hidden rounded-[2rem] border border-slate-200 dark:border-white/5 bg-slate-100 dark:bg-white/5 backdrop-blur-sm cursor-pointer",
-                !isUniform && index % 5 === 0 ? "md:col-span-2 md:row-span-2" : "",
-                !isUniform && index % 7 === 0 ? "md:row-span-2" : ""
-              )}
-              onClick={() => onOpenImage(img.url)}
-            >
-              {/* Image Container */}
-              <div className="absolute inset-0 z-0">
-                <img
-                  src={img.url}
-                  alt={img.prompt}
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                  loading="lazy"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity" />
+        {images.map((img) => (
+          <div
+            key={img.id}
+            className="relative group overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 cursor-pointer aspect-square"
+            onClick={() => onOpenImage(img.url)}
+          >
+            <img
+              src={img.url}
+              alt={img.prompt}
+              className="w-full h-full object-cover"
+              loading="lazy"
+            />
+            
+            {/* Hover overlay */}
+            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-3">
+              <span className="bg-purple-600 text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded text-white w-fit mb-1">
+                {img.model}
+              </span>
+              <p className="text-white text-xs line-clamp-2 mb-2">
+                {img.prompt}
+              </p>
+              <div className="flex gap-2">
+                <button
+                  onClick={(e) => { e.stopPropagation(); window.open(img.url, '_blank'); }}
+                  className="flex items-center gap-1 text-[10px] bg-white/20 hover:bg-white/30 text-white px-2 py-1 rounded transition-colors"
+                >
+                  <ExternalLink className="w-3 h-3" /> Open
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); handleDownload(img.url, img.prompt); }}
+                  className="flex items-center gap-1 text-[10px] bg-purple-600 hover:bg-purple-500 text-white px-2 py-1 rounded transition-colors"
+                >
+                  <Download className="w-3 h-3" /> Save
+                </button>
               </div>
-
-              {/* Overlay Content */}
-              <div className="absolute inset-0 z-10 p-8 flex flex-col justify-end opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-4 group-hover:translate-y-0">
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="bg-purple-600/90 backdrop-blur-md text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full text-white">
-                    {img.model}
-                  </span>
-                </div>
-                <p className="text-white font-medium text-lg line-clamp-2 leading-snug mb-4">
-                  "{img.prompt}"
-                </p>
-                <div className="flex items-center gap-3">
-                  <div 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      window.open(img.url, '_blank');
-                    }}
-                    className="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-xl border border-white/10 flex items-center justify-center hover:bg-white/20 transition-colors cursor-pointer"
-                    title="Open in new tab"
-                  >
-                    <ExternalLink className="w-5 h-5 text-white" />
-                  </div>
-                  
-                  <div 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDownload(img.url, img.prompt);
-                    }}
-                    className="w-12 h-12 rounded-2xl bg-purple-600 backdrop-blur-xl border border-white/10 flex items-center justify-center hover:bg-purple-500 transition-all cursor-pointer shadow-lg shadow-purple-600/40"
-                    title="Download image"
-                  >
-                    <Download className="w-5 h-5 text-white" />
-                  </div>
-                </div>
-              </div>
-
-              {/* Static Badge (Top Right) */}
-              <div className="absolute top-4 right-4 z-20 opacity-100 group-hover:opacity-0 transition-opacity">
-                <div className="bg-black/40 backdrop-blur-md border border-white/10 p-2 rounded-xl">
-                  <ImageIcon className="w-4 h-4 text-white/70" />
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </AnimatePresence>
-
-        {images.length === 0 && (
-          <div className="col-span-full h-24 invisible" />
-        )}
+            </div>
+          </div>
+        ))}
       </div>
+
+      {images.length === 0 && (
+        <div className="col-span-full h-16" />
+      )}
     </div>
   );
 }

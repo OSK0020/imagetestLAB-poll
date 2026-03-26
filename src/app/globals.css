@@ -1,36 +1,30 @@
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Heebo:wght@100..900&family=Outfit:wght@100..900&family=Rubik:wght@300..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 @custom-variant dark (&:where(.dark, .dark *));
 
 @layer base {
   :root {
-    --background: #f8fafc;
-    --foreground: #0f172a;
+    --background: #f4f4f4;
+    --foreground: #111111;
   }
 
   .dark {
-    --background: #0F071A;
-    --foreground: #ffffff;
+    --background: #1a1a1a;
+    --foreground: #eeeeee;
   }
 
   body {
     color: var(--foreground);
     background: var(--background);
-    font-family: 'Outfit', sans-serif;
+    font-family: 'Inter', sans-serif;
     overflow-x: hidden;
-    transition: background-color 0.5s ease, color 0.5s ease;
   }
 
   [dir="rtl"] {
-    font-family: 'Heebo', 'Rubik', sans-serif;
+    font-family: 'Inter', sans-serif;
   }
 
-  [dir="rtl"] h1, [dir="rtl"] h2, [dir="rtl"] h3 {
-    font-family: 'Rubik', sans-serif;
-  }
-
-  /* Reset inputs and buttons which were showing up white in some browser views */
   input, button {
     background-color: transparent;
     color: inherit;
@@ -39,8 +33,7 @@
   input:-webkit-autofill,
   input:-webkit-autofill:hover,
   input:-webkit-autofill:focus {
-    -webkit-text-fill-color: white !important;
-    -webkit-box-shadow: 0 0 0px 1000px #0F071A inset !important;
+    -webkit-text-fill-color: inherit !important;
     transition: background-color 5000s ease-in-out 0s !important;
   }
 }
@@ -54,71 +47,24 @@
   }
 }
 
-@keyframes glow-pulse {
-  0% { box-shadow: 0 0 15px rgba(139, 92, 246, 0.2), 0 0 5px rgba(59, 130, 246, 0.1); }
-  50% { box-shadow: 0 0 35px rgba(139, 92, 246, 0.5), 0 0 15px rgba(59, 130, 246, 0.3); }
-  100% { box-shadow: 0 0 15px rgba(139, 92, 246, 0.2), 0 0 5px rgba(59, 130, 246, 0.1); }
-}
-
-@keyframes google-colors {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
-.google-btn-live {
-  background: linear-gradient(
-    -45deg, 
-    #4285F4, 
-    #EA4335, 
-    #FBBC05, 
-    #34A853,
-    #4285f4
-  );
-  background-size: 300% 300%;
-  animation: google-colors 8s ease infinite;
-}
-
-.animate-glow {
-  animation: glow-pulse 4s infinite ease-in-out;
-}
-
-/* Custom Scrollbar */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(155, 155, 155, 0.2);
-  border-radius: 10px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(155, 155, 155, 0.4);
-}
-
+/* Basic Scrollbar */
 ::-webkit-scrollbar {
-  width: 10px;
+  width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #0A0A0A;
+  background: #e0e0e0;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: #2a2a2a;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #1A1A1A;
-  border-radius: 5px;
-  border: 3px solid #0A0A0A;
+  background: #aaa;
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #2A2A2A;
-}
-
-canvas {
-  outline: none;
+  background: #888;
 }

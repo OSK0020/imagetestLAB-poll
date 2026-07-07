@@ -1,4 +1,12 @@
-# 🌌 AI Models Laboratory - Public Source Preview
+# 🌌 AI Models Laboratory
+### *The Ultimate Visionary Playground for AI Image Generation*
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-purple.svg)](LICENSE)
+[![Next.js](https://img.shields.io/badge/Next.js-15-black.svg?logo=next.js)](https://nextjs.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4.0-blue.svg?logo=tailwindcss)](https://tailwindcss.com/)
+[![Three.js](https://img.shields.io/badge/Three.js-Graphics-orange.svg?logo=three.js)](https://threejs.org/)
+
+---
 
 Welcome to the public source preview and architecture reference for **AI Models Laboratory**, a high-performance visual playground for comparing modern AI image and video models in real time. 
 

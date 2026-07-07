@@ -1,0 +1,47 @@
+name: Daily Model Test
+
+on:
+  workflow_dispatch: # כפתור ההפעלה הידני
+  schedule:
+    # רץ כל יום שני  08:00 בבוקר (לפי שעון UTC)
+    - cron: '0 8 * * 1'
+jobs:
+  test-models:
+    runs-on: ubuntu-latest
+    
+    # מתן הרשאות לוורקפלו לעשות פוש חזרה למאגר
+    permissions:
+      contents: write 
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Run Python Script
+        # כאן אנחנו שולפים את הסוד מהכספת של גיטהאב ומעבירים אותו לסקריפט
+        env:
+          POLLINATIONS_API_KEY: ${{ secrets.POLLINATIONS_API_KEY }}
+        run: python test_models.py
+
+      - name: Upload Images (Artifacts)
+        uses: actions/upload-artifact@v4
+        with:
+          name: model-results
+          path: "*.jpg"
+
+      - name: Update Daily Log & Push (For GitHub Activity)
+        run: |
+          echo "Last model test run at: $(date)" >> test_log.txt
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add test_log.txt
+          git commit -m "chore: automated daily model test run" || echo "No changes to commit"
+          git push

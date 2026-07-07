@@ -1,86 +1,47 @@
-# 🌌 AI Models Laboratory (Public Preview)
+# 🌌 AI Models Laboratory - Public Source Preview
 
-> [!CAUTION]
-> **PROTECTED REPOSITORY - PARTIAL BUILD**
-> This repository contains only public assets, styles, and documentation for demonstration purposes.
-> The core logic, including components, API routes, and specialized hooks, is kept private to protect intellectual property.
-> **Cloning or zipping this repository will NOT result in a functional application locally.**
-> 
+Welcome to the public source preview and architecture reference for **AI Models Laboratory**, a high-performance visual playground for comparing modern AI image and video models in real time. 
 
-### *The Ultimate Visionary Playground for AI Image Generation*
-🚀 >>> **[CLICK HERE TO ACCESS THE FULL LIVE LAB](https://iamge-lab-website.vercel.app/)** <<<
-![AI Lab Banner](./banner.png)
-
-## ✨ Overview
-**AI Models Laboratory** is a cutting-edge, high-performance web application designed to explore the frontiers of modern AI image models. Built with **Next.js 15**, **Three.js**, and **Pollinations AI**, it provides an immersive, real-time experience for generating and archiving high-resolution AI art.
+> [!NOTE]
+> **Repository Scope & Copyright Notice**
+>
+> This repository is a **read-only developer portfolio and code preview** curated to showcase backend architecture, Web Audio API synthesis pipelines, and performance guard strategies. 
+> To protect proprietary UI designs, custom 3D WebGL assets, and product animations, the full production code is maintained in a private repository.
 
 ---
 
-## 🚀 Key Highlights
+## 🛠️ Architecture Highlights
 
+This preview highlights three core pillars of full-stack engineering implemented in the project:
 
-### 🎭 **Multi-Model Orchestration**
-Switch between the world's most advanced models including **Flux Schnell**, **Grok Imagine**, **Imagen 4**, and many more. Compare interpretations in real-time or generate with all models sequentially.
+### 1. ⚡ Intelligent Performance Guard & WebGL Fallbacks
+To ensure an immersive 60 FPS loading experience on low-end devices and slow mobile connections, a multi-tier client detection script runs prior to initializing WebGL:
+* **Hardware Benchmarking**: Queries `navigator.deviceMemory` (RAM) and `navigator.hardwareConcurrency` (CPU cores) to identify low-spec hardware.
+* **Network Latency Check**: Queries the Network Information API for connection speed indicators (`slow-2g`, `2g`, `3g`) or data-saving mode (`conn.saveData`).
+* **Visual Adaptability**: If a bottleneck is detected, the application automatically bypasses the heavy 3D Spline WebGL scene (saving 1MB of JS overhead and CPU cycles) and displays a hardware-accelerated CSS space gradient fallback.
 
-### 🔍 **Deep Scan Analysis**
-Integrated API key monitoring providing real-time data on budget spent, rate limits, and remaining tokens. Get a clear overview of your AI resources.
+### 🔊 2. Real-Time Web Audio API Synthesis
+Custom synthesized auditory feedback engineered directly inside the client browser without media asset latency:
+* **Auditory Presets**: Multi-mode sound synthesis engine (`Default` chime, retro `8-Bit` square-wave sweeps, sci-fi `Laser` sawtooth zaps, filtered `Bubble` bandpass pops, and tactile `Mechanical` keyboard switches).
+* **Binaural Ambience**: Generates real-time custom chords, panning melodies, and binaural beats directly within the browser AudioContext for relaxing research sessions.
+* **Audio Debouncing**: Integrated audio call-stack throttling (60ms debounce window) to prevent overlapping click sounds from event propagation.
 
-### 🔐 **Secure Secrets Management**
-Enterprise-grade handling of API keys. Masks sensitive data with encrypted-style displays and includes safety confirmation flows for key changes.
-
-### 🎨 **Premium Aesthetics & UX**
-- **Interactive 3D Particles**: Powered by **Three.js** for an evolving, deep-space background.
-- **Glassmorphism Design**: Sleek, transparent components with vibrant purple accents.
-- **Bento-style Gallery**: Modern, responsive grid to showcase your generations.
-
----
-
-## 🛠️ Tech Stack
-
-| Category | Technology |
-| :--- | :--- |
-| **Framework** | [Next.js](https://nextjs.org/) (App Router, Turbopack) |
-| **Styling** | [Tailwind CSS 4](https://tailwindcss.com/) |
-| **Animations** | [Framer Motion](https://www.framer.com/motion/) |
-| **3D Graphics** | [Three.js](https://threejs.org/) |
-| **Database/Auth** | [Firebase](https://firebase.google.com/) |
-| **AI API** | [Pollinations AI](https://pollinations.ai/) |
+### 🛡️ 3. Safe Secrets & Cryptographic Verification
+* **Secret Audit Utilities**: Real-time validation, rate limit tracking, and usage budget metrics.
+* **Key Encryption Display**: Frontend key-masking logic that displays sensitive API credentials in an encrypted style representation to prevent shoulder-surfing.
 
 ---
 
-## ⚡ Quick Start
+## 🗂️ Code Preview Directory
 
-### 1. Clone & Install
-```bash
-git clone https://github.com/your-username/imagelab-modern.git
-cd imagelab-modern
-npm install
-```
-
-### 2. Configure Environment
-Create a `.env.local` file and add your Firebase configurations:
-```env
-NEXT_PUBLIC_FIREBASE_API_KEY=your_key
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_domain
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_id
-...
-```
-
-### 3. Run Development
-```bash
-npm run dev
-```
-
----
-
-## 💎 Design Philosophy
-Designed for those who appreciate **Visual Excellence**. The UI isn't just a tool; it's a workspace that feels alive, responsive, and state-of-the-art. Every hover, transition, and color has been curated for a premium "Cyber-Premium" experience.
+* **[src/app/api/](file:///C:/Users/Shteren/Downloads/imagetest1-poll-main/imagetest1-poll-main/src/app/api)**: Contains the serverless Next.js App Router API route handlers (`generate`, `download`, `history`, `support`, `user`) connecting the frontend securely to backend services.
+* **[src/lib/synthSfx.ts](file:///C:/Users/Shteren/Downloads/imagetest1-poll-main/imagetest1-poll-main/src/lib/synthSfx.ts)**: Implements browser-based audio synthesis, click sound debouncing, and custom asset preloading.
+* **[src/lib/ambientMusic.ts](file:///C:/Users/Shteren/Downloads/imagetest1-poll-main/imagetest1-poll-main/src/lib/ambientMusic.ts)**: Web Audio API binaural background music synthesizer.
+* **[src/lib/secretAudit.ts](file:///C:/Users/Shteren/Downloads/imagetest1-poll-main/imagetest1-poll-main/src/lib/secretAudit.ts)**: Security auditing and validation logic.
 
 ---
 
 ## 📜 License
-**PROPRIETARY & CONFIDENTIAL**
-Copyright © 2024-2026 OSK0020. All rights reserved. 
-Redistribution, reproduction, or use of this source code in any form is prohibited without express written permission.
+This preview code is provided for educational and review purposes. The underlying product design, assets, and branding are proprietary.
 
-Developed with ❤️ by OSK0020.
+Developed with ❤️ by Shteren.

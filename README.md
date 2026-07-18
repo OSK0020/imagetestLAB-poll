@@ -2,7 +2,7 @@
 ### *The Ultimate Visionary Playground for AI Image Generation*
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-purple.svg)](LICENSE)
-[![Next.js](https://img.shields.io/badge/Next.js-15-black.svg?logo=next.js)](https://nextjs.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-16-black.svg?logo=next.js)](https://nextjs.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4.0-blue.svg?logo=tailwindcss)](https://tailwindcss.com/)
 [![Three.js](https://img.shields.io/badge/Three.js-Graphics-orange.svg?logo=three.js)](https://threejs.org/)
 
@@ -35,17 +35,19 @@ Custom synthesized auditory feedback engineered directly inside the client brows
 * **Audio Debouncing**: Integrated audio call-stack throttling (60ms debounce window) to prevent overlapping click sounds from event propagation.
 
 ### 🛡️ 3. Safe Secrets & Cryptographic Verification
-* **Secret Audit Utilities**: Real-time validation, rate limit tracking, and usage budget metrics.
+* **Pollinations Authentication**: Generation uses the current `gen.pollinations.ai` API with bearer authentication. Users can bring a `pk_` or `sk_` key; otherwise the server uses the app's publishable `pk_` key.
+* **Stable Generation History**: Generated media is uploaded to `media.pollinations.ai` before its URL is stored in Firestore.
+* **Secret Audit Utilities**: Runtime validation checks required deployment configuration without treating publishable keys as server secrets.
 * **Key Encryption Display**: Frontend key-masking logic that displays sensitive API credentials in an encrypted style representation to prevent shoulder-surfing.
 
 ---
 
 ## 🗂️ Code Preview Directory
 
-* **[src/app/api/](file:///C:/Users/Shteren/Downloads/imagetest1-poll-main/imagetest1-poll-main/src/app/api)**: Contains the serverless Next.js App Router API route handlers (`generate`, `download`, `history`, `support`, `user`) connecting the frontend securely to backend services.
-* **[src/lib/synthSfx.ts](file:///C:/Users/Shteren/Downloads/imagetest1-poll-main/imagetest1-poll-main/src/lib/synthSfx.ts)**: Implements browser-based audio synthesis, click sound debouncing, and custom asset preloading.
-* **[src/lib/ambientMusic.ts](file:///C:/Users/Shteren/Downloads/imagetest1-poll-main/imagetest1-poll-main/src/lib/ambientMusic.ts)**: Web Audio API binaural background music synthesizer.
-* **[src/lib/secretAudit.ts](file:///C:/Users/Shteren/Downloads/imagetest1-poll-main/imagetest1-poll-main/src/lib/secretAudit.ts)**: Security auditing and validation logic.
+* **[src/app/api/](src/app/api/)**: Contains the serverless Next.js App Router API route handlers connecting the frontend securely to backend services.
+* **[src/lib/synthSfx.ts](src/lib/synthSfx.ts)**: Implements browser-based audio synthesis, click sound debouncing, and custom asset preloading.
+* **[src/lib/ambientMusic.ts](src/lib/ambientMusic.ts)**: Web Audio API binaural background music synthesizer.
+* **[src/lib/secretAudit.ts](src/lib/secretAudit.ts)**: Security auditing and validation logic.
 
 ---
 

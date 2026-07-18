@@ -1,29 +1,24 @@
 import { NextResponse } from 'next/server';
+import { isPollinationsKey, pollinationsHeaders } from '@/lib/pollinations';
 
 export async function POST(req: Request) {
   try {
     const { key } = await req.json();
 
-    if (!key) {
-      return NextResponse.json({ error: 'Key is required' }, { status: 400 });
+    if (!isPollinationsKey(key)) {
+      return NextResponse.json({ error: 'A valid pk_ or sk_ key is required.' }, { status: 400 });
     }
 
-    const appKey = process.env.POLLINATIONS_APP_KEY;
-
-    // Parallel fetching to double the speed
-    const headers = { 
-      'Authorization': `Bearer ${key}`,
-      ...(appKey ? { 'x-pollinations-app-key': appKey } : {})
-    };
+    const headers = pollinationsHeaders(key);
 
     const [balanceRes, profileRes] = await Promise.all([
-      fetch("https://gen.pollinations.ai/account/balance", { headers }),
-      fetch("https://gen.pollinations.ai/account/profile", { headers })
+      fetch('https://gen.pollinations.ai/account/balance', { headers, cache: 'no-store' }),
+      fetch('https://gen.pollinations.ai/account/profile', { headers, cache: 'no-store' })
     ]);
 
     // If either returns 401, the key is invalid
     if (balanceRes.status === 401 || profileRes.status === 401) {
-       return NextResponse.json({ error: 'Invalid or inactive secret key' }, { status: 401 });
+       return NextResponse.json({ error: 'Invalid or inactive Pollinations key.' }, { status: 401 });
     }
 
     // Try parsing whatever we got
@@ -31,11 +26,11 @@ export async function POST(req: Request) {
     let profileData = null;
 
     if (balanceRes.ok) {
-        try { balanceData = await balanceRes.json(); } catch (e) {}
+        try { balanceData = await balanceRes.json(); } catch {}
     }
     
     if (profileRes.ok) {
-        try { profileData = await profileRes.json(); } catch (e) {}
+        try { profileData = await profileRes.json(); } catch {}
     }
 
     // If we have either, it's a valid key
@@ -53,8 +48,8 @@ export async function POST(req: Request) {
         error: 'Key verification failed. Pollinations API may be temporarily down.' 
     }, { status: 502 });
 
-  } catch (error: any) {
+  } catch (error) {
     console.error('[API/USER] Error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: error instanceof Error ? error.message : 'Key verification failed.' }, { status: 500 });
   }
 }

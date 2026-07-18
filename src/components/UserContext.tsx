@@ -1,17 +1,15 @@
 'use client';
 
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import React, { createContext, useContext, useState, useCallback } from 'react';
 
 export interface UserProfile {
   username: string;
   image: string;
-  tier: 'Seed' | 'Flower' | 'Nectar' | string;
+  tier: string;
 }
 
 export interface UserBalance {
-  totalBalance: number;
-  tierBalance: number;
-  packBalance: number;
+  balance: number;
 }
 
 interface UserContextType {
@@ -34,29 +32,27 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     setIsLoading(true);
 
     try {
-      const headers = { 'Authorization': `Bearer ${apiKey}` };
+      const response = await fetch('/api/user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: apiKey })
+      });
 
-      // Parallel fetching
-      const [profileRes, balanceRes] = await Promise.all([
-        fetch('https://gen.pollinations.ai/api/account/profile', { headers }),
-        fetch('https://gen.pollinations.ai/api/account/balance', { headers })
-      ]);
-
-      if (profileRes.ok && balanceRes.ok) {
-        const profileData = await profileRes.json();
-        const balanceData = await balanceRes.json();
+      if (response.ok) {
+        const { profile: profileData, balance: balanceData } = await response.json();
 
         setProfile({
-          username: profileData.username || 'Anonymous Builder',
-          image: profileData.image || '',
-          tier: profileData.tier || 'Seed'
+          username: profileData?.githubUsername || profileData?.name || 'Anonymous Builder',
+          image: profileData?.image || '',
+          tier: profileData?.tier || 'Seed'
         });
 
         setBalance({
-          totalBalance: balanceData.totalBalance || 0,
-          tierBalance: balanceData.tierBalance || 0,
-          packBalance: balanceData.packBalance || 0
+          balance: Number(balanceData?.balance) || 0
         });
+      } else {
+        setProfile(null);
+        setBalance(null);
       }
     } catch (err) {
       console.error("Failed to fetch user dashboard data:", err);

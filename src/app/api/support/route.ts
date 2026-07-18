@@ -3,7 +3,7 @@ import { Resend } from 'resend';
 import { db } from '@/lib/firebase';
 import { collection, addDoc } from 'firebase/firestore';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 export async function POST(request: Request) {
   try {
@@ -23,13 +23,14 @@ export async function POST(request: Request) {
         userId: userId || 'guest',
         createdAt: new Date()
       });
-    } catch (dbErr: any) {
+    } catch (dbErr) {
       console.error('Failed to write support ticket to Firestore:', dbErr);
-      return NextResponse.json({ error: `Database write failed: ${dbErr.message}` }, { status: 500 });
+      const message = dbErr instanceof Error ? dbErr.message : 'Unknown database error';
+      return NextResponse.json({ error: `Database write failed: ${message}` }, { status: 500 });
     }
 
     // If Resend API Key is missing, print warning and fail gracefully
-    if (!process.env.RESEND_API_KEY) {
+    if (!resend) {
       console.warn('RESEND_API_KEY is not defined in environment variables. Skipping background email dispatch.');
       return NextResponse.json({ success: true, warning: 'Email configuration missing' });
     }
@@ -60,8 +61,8 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({ success: true, data });
-  } catch (err: any) {
+  } catch (err) {
     console.error('Support API route error:', err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json({ error: err instanceof Error ? err.message : 'Support request failed.' }, { status: 500 });
   }
 }

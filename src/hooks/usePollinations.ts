@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useRef } from 'react';
 import { db } from '@/lib/firebase';
+import { GENERATION_MODELS } from '@/lib/models';
 import { collection, doc, setDoc, query, orderBy, limit, getDocs } from 'firebase/firestore';
 
 export interface ImageItem {
@@ -20,18 +21,12 @@ export interface KeyAnalysis {
   rateLimit: string;
 }
 
-const ORIGINAL_MODELS = [
-  'flux', 'flux-2-dev', 'dirtberry', 'zimage', 'imagen-4', 
-  'grok-imagine', 'klein', 'gptimage', 'klein-large'
-];
-
 export function usePollinations(apiKey: string | null, uid: string | null) {
   const [images, setImages] = useState<ImageItem[]>([]);
   const [history, setHistory] = useState<ImageItem[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isTranslating, setIsTranslating] = useState(false);
   const [keyAnalysis, setKeyAnalysis] = useState<KeyAnalysis | null>(null);
-  const [isStopping, setIsStopping] = useState(false);
   
   // Sequential queue management
   const queueRef = useRef<{prompt: string, model: string}[]>([]);
@@ -45,25 +40,46 @@ export function usePollinations(apiKey: string | null, uid: string | null) {
 
     setIsTranslating(true);
     try {
-      const res = await fetch('https://text.pollinations.ai/', {
+      const res = await fetch('/api/translate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          messages: [
-            { role: 'system', content: 'You are an invisible translator. Translate user text directly to English without quotes, context, or chatty remarks. Just return the prompt exactly.' },
-            { role: 'user', content: prompt }
-          ],
-          model: 'gemini' 
-        })
+          prompt,
+          userKey: apiKey
+        }),
+        signal: abortControllerRef.current?.signal
       });
-      const translated = await res.text();
-      setIsTranslating(false);
-      return translated.trim();
+      if (!res.ok) throw new Error('Translation request failed.');
+      const { text } = await res.json();
+      return typeof text === 'string' && text.trim() ? text.trim() : prompt;
     } catch (err) {
       console.error("Translation fail:", err);
-      setIsTranslating(false);
       return prompt;
+    } finally {
+      setIsTranslating(false);
     }
+  };
+
+  const generateMedia = async (prompt: string, model: string, seed: number): Promise<string> => {
+    const response = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        prompt,
+        model,
+        seed,
+        width: 1024,
+        height: 1024,
+        userKey: apiKey
+      }),
+      signal: abortControllerRef.current?.signal
+    });
+
+    const result = await response.json();
+    if (!response.ok || typeof result.url !== 'string') {
+      throw new Error(result.error || 'Generation failed.');
+    }
+    return result.url;
   };
 
   const saveToFirestore = async (item: ImageItem) => {
@@ -82,7 +98,6 @@ export function usePollinations(apiKey: string | null, uid: string | null) {
     isProcessingQueue.current = true;
     setIsGenerating(true);
     stopRef.current = false;
-    setIsStopping(false);
     abortControllerRef.current = new AbortController();
 
     while (queueRef.current.length > 0 && !stopRef.current) {
@@ -93,28 +108,7 @@ export function usePollinations(apiKey: string | null, uid: string | null) {
         const id = Date.now().toString();
         const seed = Math.floor(Math.random() * 1000000);
         
-        // Use the secure API Route to generate the image with headers (BYOP)
-        // This prevents exposing the POLLINATIONS_APP_KEY in the frontend
-        const generationResponse = await fetch('/api/generate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            prompt: englishPrompt,
-            model,
-            seed,
-            width: 1024,
-            height: 1024,
-            userKey: apiKey // The sk_... key provided by user
-          })
-        });
-
-        if (!generationResponse.ok) {
-           const errorMsg = await generationResponse.text();
-           throw new Error(`Generation via proxy failed: ${errorMsg}`);
-        }
-
-        // Once generated via proxy (authorized), we can use the deterministic URL for state/history
-        const url = `https://pollinations.ai/p/${encodeURIComponent(englishPrompt)}?width=1024&height=1024&seed=${seed}&model=${model}&nologo=true`;
+        const url = await generateMedia(englishPrompt, model, seed);
         
         const newImage: ImageItem = {
           id,
@@ -139,7 +133,6 @@ export function usePollinations(apiKey: string | null, uid: string | null) {
 
     setIsGenerating(false);
     isProcessingQueue.current = false;
-    setIsStopping(false);
     abortControllerRef.current = null;
   };
 
@@ -154,8 +147,6 @@ export function usePollinations(apiKey: string | null, uid: string | null) {
       // but for this small prototype we'll fetch then delete or just truncate.
       const q = query(collection(db, 'users', uid, 'history'));
       const querySnapshot = await getDocs(q);
-      const deletePromises = querySnapshot.docs.map(d => setDoc(doc(db, 'users', uid, 'history', d.id), {}, { merge: false })); // This is a bit hacky, normally deleteDoc
-      // Better:
       const { deleteDoc } = await import('firebase/firestore');
       const realP = querySnapshot.docs.map(d => deleteDoc(doc(db, 'users', uid, 'history', d.id)));
       await Promise.all(realP);
@@ -168,7 +159,6 @@ export function usePollinations(apiKey: string | null, uid: string | null) {
   const stopGeneration = () => {
     stopRef.current = true;
     queueRef.current = [];
-    setIsStopping(true);
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
@@ -183,13 +173,13 @@ export function usePollinations(apiKey: string | null, uid: string | null) {
       
       const englishPrompt = await translatePrompt(prompt);
       
-      const promises = ORIGINAL_MODELS.map(async (m) => {
+      const promises = GENERATION_MODELS.map(async (m) => {
         if (stopRef.current) return;
         
         try {
           const id = Date.now().toString() + m;
           const seed = Math.floor(Math.random() * 1000000);
-          const url = `https://pollinations.ai/p/${encodeURIComponent(englishPrompt)}?width=1024&height=1024&seed=${seed}&model=${m}&nologo=true`;
+          const url = await generateMedia(englishPrompt, m, seed);
           
           const newImage: ImageItem = {
             id,
@@ -237,48 +227,29 @@ export function usePollinations(apiKey: string | null, uid: string | null) {
 
   const verifyAndAnalyzeKey = async (key: string): Promise<boolean> => {
     try {
-      const response = await fetch('https://image.pollinations.ai/models', {
-        headers: { 'Authorization': `Bearer ${key}` }
+      const response = await fetch('/api/user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key })
       });
-      
-      const isValid = (response.status === 200 || response.status === 304 || response.status === 340) || (key.startsWith('sk_') && key.length > 20);
-      
-      if (isValid) {
-        try {
-          const scanRes = await fetch("https://api.pollinations.ai/v1/billing/balance", {
-            headers: { 'Authorization': `Bearer ${key}` }
-          });
-          
-          let limitVal = 100;
-          let spentVal = 0;
-          let isPremium = true;
-
-          if (scanRes.ok) {
-            const data = await scanRes.json();
-            limitVal = data.total_quota || 100;
-            spentVal = data.used_quota || 0;
-          } else {
-            const pseudoHash = Array.from(key).reduce((sum, char) => sum + char.charCodeAt(0), 0);
-            limitVal = 50 + (pseudoHash % 200);
-            spentVal = pseudoHash % limitVal;
-          }
-
-          const percentage = Math.min((spentVal / limitVal) * 100, 100);
-          setKeyAnalysis({
-            limit: limitVal,
-            spent: spentVal,
-            isPremium,
-            percentage,
-            rateLimit: isPremium ? "Unlimited / Pro" : "Standard Limit"
-          });
-        } catch (err) {
-          console.error("Analysis failed:", err);
-        }
+      if (!response.ok) {
+        setKeyAnalysis(null);
+        return false;
       }
-      
-      return isValid;
-    } catch (e) {
-      return key.startsWith('sk_') && key.length > 20;
+
+      const data = await response.json();
+      const availableBalance = Number(data.balance?.balance) || 0;
+      setKeyAnalysis({
+        limit: availableBalance,
+        spent: 0,
+        isPremium: availableBalance > 0,
+        percentage: 0,
+        rateLimit: 'Balance-backed'
+      });
+      return true;
+    } catch {
+      setKeyAnalysis(null);
+      return false;
     }
   };
 

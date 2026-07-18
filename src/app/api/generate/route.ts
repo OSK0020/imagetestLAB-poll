@@ -1,97 +1,95 @@
 import { NextResponse } from 'next/server';
+import { pollinationsHeaders, resolvePollinationsKey } from '@/lib/pollinations';
 
-// Built-in application public key — used as the default guest fallback.
-// This is an app-level key (pk_...), NOT a user secret (sk_...).
-// It must NEVER be sent as a Bearer authorization token.
-const GUEST_APP_KEY = 'pk_CBViurgPPhpt77kS';
+const VIDEO_MODELS = new Set([
+  'veo',
+  'seedance',
+  'seedance-pro',
+  'seedance-2.0',
+  'wan',
+  'wan-fast',
+  'wan-pro',
+  'wan-pro-1080p',
+  'grok-video-pro',
+  'ltx-2',
+  'p-video-720p',
+  'p-video-1080p',
+  'nova-reel',
+]);
+
+function errorMessage(status: number): string {
+  if (status === 401) return 'Your Pollinations key is invalid or expired.';
+  if (status === 402) return 'Your Pollinations balance or key budget is exhausted.';
+  if (status === 429) return 'Pollinations is rate limiting requests. Please retry shortly.';
+  if (status >= 500) return 'The selected model is temporarily unavailable.';
+  return 'Pollinations could not complete this generation.';
+}
 
 export async function POST(req: Request) {
   try {
-    const { prompt, model, seed, width, height, userKey } = await req.json();
+    const { prompt, model = 'zimage', seed = -1, width = 1024, height = 1024, userKey } = await req.json();
 
-    if (!prompt) {
-      return NextResponse.json({ error: 'Prompt is required' }, { status: 400 });
+    if (typeof prompt !== 'string' || !prompt.trim()) {
+      return NextResponse.json({ error: 'Prompt is required.' }, { status: 400 });
+    }
+    if (typeof model !== 'string' || !model) {
+      return NextResponse.json({ error: 'Model is required.' }, { status: 400 });
     }
 
-    const isVideo = ['ltx-2', 'nova-reel'].includes(model || '');
+    const key = resolvePollinationsKey(userKey);
+    const isVideo = VIDEO_MODELS.has(model);
+    const path = isVideo ? 'video' : 'image';
+    const params = new URLSearchParams({
+      model,
+      width: String(width),
+      height: String(height),
+      seed: String(seed),
+      safe: 'true',
+    });
+    const generationUrl = `https://gen.pollinations.ai/${path}/${encodeURIComponent(prompt.trim())}?${params}`;
 
-    const baseUrl = isVideo ? 'https://gen.pollinations.ai/video/' : 'https://image.pollinations.ai/prompt/';
-    
-    // Resolve the effective app key: prefer the env variable, fall back to the built-in guest constant.
-    const appKey = process.env.POLLINATIONS_APP_KEY || GUEST_APP_KEY;
-    const keyToUse = userKey && !userKey.startsWith('pk_') ? userKey : appKey;
-
-    let pollUrl = '';
-    if (isVideo) {
-      pollUrl = `${baseUrl}${encodeURIComponent(prompt)}?model=${model || 'ltx-2'}&key=${keyToUse}`;
-    } else {
-      pollUrl = `${baseUrl}${encodeURIComponent(prompt)}?width=${width || 1024}&height=${height || 1024}&seed=${seed || 42}&model=${model || 'flux'}&nologo=true`;
-    }
-
-    const headers: Record<string, string> = {};
-
-    // ── Key routing logic ──────────────────────────────────────────────────────
-    // pk_ keys are PUBLIC application tokens — they must NOT be used as Bearer
-    // user authentication. Only sk_ (secret) keys are valid Bearer tokens.
-    // If userKey is a pk_ key (or the guest constant), treat it as the app key.
-    if (userKey && !userKey.startsWith('pk_')) {
-      // Real user secret key — authorizes usage on behalf of that Pollinations account
-      headers['Authorization'] = `Bearer ${userKey}`;
-    }
-
-    // Always include the app key header to credit this request to our registered application
-    headers['x-pollinations-app-key'] = appKey;
-
-    const isGuestMode = !userKey || userKey.startsWith('pk_');
-    console.log(
-      `[API] Generating: "${prompt.slice(0, 30)}..." | Model: ${model} | Mode: ${isGuestMode ? 'Guest (app token)' : 'Authenticated (user key)'}`
-    );
-
-    let response = await fetch(pollUrl, {
-      method: 'GET',
-      headers,
+    const generationResponse = await fetch(generationUrl, {
+      headers: pollinationsHeaders(key),
+      cache: 'no-store',
     });
 
-    // Fallback: If request with user secret key fails (e.g. out of tokens/402, rate limit/429, invalid/401)
-    if (!response.ok && userKey && !userKey.startsWith('pk_')) {
-      console.warn(`[API] Request with user key failed with status ${response.status}. Retrying with app-level guest fallback...`);
-      const fallbackHeaders: Record<string, string> = {
-        'x-pollinations-app-key': appKey
-      };
-      response = await fetch(pollUrl, {
-        method: 'GET',
-        headers: fallbackHeaders,
-      });
+    if (!generationResponse.ok) {
+      return NextResponse.json(
+        { error: errorMessage(generationResponse.status) },
+        { status: generationResponse.status },
+      );
     }
 
-    if (!response.ok) {
-      const status = response.status;
-      let userFriendlyError = 'AI Simulation failed due to a temporary protocol anomaly. Please retry.';
-      
-      if (status === 401) {
-        userFriendlyError = 'Your API key is invalid or has expired. Please check your settings.';
-      } else if (status === 402) {
-        userFriendlyError = 'Your Pollinations key has run out of tokens. Please recharge your balance or use Guest Mode.';
-      } else if (status === 429) {
-        userFriendlyError = 'Rate limit exceeded. The AI model clusters are currently overloaded. Please wait a moment.';
-      } else if (status >= 500) {
-        userFriendlyError = 'The generative AI model cluster is temporarily offline or undergoing maintenance. Please try again shortly.';
-      }
-      
-      console.error(`[API] Pollinations Error (${status}):`, userFriendlyError);
-      throw new Error(userFriendlyError);
-    }
+    const media = await generationResponse.blob();
+    const contentType = generationResponse.headers.get('content-type') || media.type || (isVideo ? 'video/mp4' : 'image/jpeg');
+    const extension = contentType.includes('png') ? 'png' : contentType.includes('webp') ? 'webp' : isVideo ? 'mp4' : 'jpg';
+    const upload = new FormData();
+    upload.append('file', media, `generation-${seed}.${extension}`);
 
-    console.log(`[API] Success: ${model}`);
-    const blob = await response.blob();
-    return new Response(blob, {
-      headers: {
-        'Content-Type': isVideo ? 'video/mp4' : 'image/jpeg',
-        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
-      },
+    const uploadResponse = await fetch('https://media.pollinations.ai/upload', {
+      method: 'POST',
+      headers: pollinationsHeaders(key),
+      body: upload,
+      cache: 'no-store',
     });
-  } catch (error: any) {
-    console.error('API Generate Error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+
+    if (!uploadResponse.ok) {
+      return NextResponse.json(
+        { error: 'The generation succeeded, but its media URL could not be stored.' },
+        { status: 502 },
+      );
+    }
+
+    const stored = await uploadResponse.json();
+    if (typeof stored.url !== 'string') {
+      return NextResponse.json({ error: 'Pollinations returned an invalid media response.' }, { status: 502 });
+    }
+
+    return NextResponse.json({ url: stored.url, contentType, model });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Generation failed.';
+    const status = message.includes('must start with') || message.includes('must be a publishable') ? 400 : 500;
+    console.error('[API/generate]', error);
+    return NextResponse.json({ error: message }, { status });
   }
 }

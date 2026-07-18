@@ -15,7 +15,7 @@ const REQUIRED_SECRETS: CryptographicSecretDefinition[] = [
     name: 'POLLINATIONS_APP_KEY',
     minLength: 16,
     patternPrefix: 'pk_',
-    isSensitiveServerSecret: true
+    isSensitiveServerSecret: false // Publishable app key; user sk_ keys are never stored here
   },
   {
     name: 'UPSTASH_REDIS_REST_URL',
